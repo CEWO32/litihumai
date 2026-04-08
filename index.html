@@ -1,0 +1,68 @@
+ <!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lithium AI | @Artimichi</title>
+    <style>
+        :root { --bg: #131314; --side: #1e1f20; --text: #e3e3e3; --blue: #4285f4; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); display: flex; height: 100vh; }
+        .sidebar { width: 250px; background: var(--side); padding: 20px; display: flex; flex-direction: column; justify-content: space-between; border-right: 1px solid #333; }
+        .logo { font-size: 22px; font-weight: bold; color: var(--blue); text-align: center; margin-bottom: 20px; }
+        .btn { background: #2b2c2f; border: none; color: white; padding: 12px; border-radius: 8px; cursor: pointer; margin-bottom: 10px; width: 100%; text-align: left; }
+        .dev-link { background: #4285f4; color: #000; font-weight: bold; text-decoration: none; display: block; padding: 12px; border-radius: 8px; text-align: center; }
+        .chat-area { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 20px; position: relative; }
+        #output { width: 100%; max-width: 700px; flex: 1; overflow-y: auto; padding-bottom: 100px; display: flex; flex-direction: column; gap: 15px; }
+        .msg { padding: 12px 18px; border-radius: 15px; max-width: 80%; line-height: 1.5; }
+        .user { align-self: flex-end; background: #2b2c2f; border: 1px solid #444; }
+        .ai { align-self: flex-start; background: transparent; border-left: 4px solid var(--blue); }
+        .input-wrap { position: absolute; bottom: 30px; width: 100%; max-width: 700px; background: #1e1f20; border-radius: 25px; padding: 5px 20px; display: flex; box-shadow: 0 5px 15px rgba(0,0,0,0.4); }
+        input { flex: 1; background: transparent; border: none; color: white; padding: 12px; font-size: 16px; outline: none; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div>
+            <div class="logo">LITHIUM AI</div>
+            <button class="btn" onclick="location.reload()">+ Yeni Sohbet</button>
+        </div>
+        <a href="https://youtube.com/@Artimichi" target="_blank" class="dev-link">🚀 GELİŞTİRİCİ: @Artimichi</a>
+    </div>
+    <div class="chat-area">
+        <div id="output"><div class="msg ai">Merhaba! Ben Lithium AI. Matematik işlemlerini saniyeler içinde yaparım!</div></div>
+        <div class="input-wrap"><input type="text" id="userInput" placeholder="Mesajınızı yazın ve Enter'a basın..." autofocus></div>
+    </div>
+    <script>
+        const API_KEY = "AIzaSyDpY1pNarcm2r8lpOwGAaaf087y5_256II";
+        const input = document.getElementById('userInput');
+        const output = document.getElementById('output');
+        async function talk() {
+            const val = input.value.trim();
+            if(!val) return;
+            output.innerHTML += `<div class="msg user">${val}</div>`;
+            input.value = "";
+            try {
+                if (/^[0-9+\-*/(). ]+$/.test(val)) {
+                    output.innerHTML += `<div class="msg ai"><b>Lithium:</b> ${val} = ${eval(val)}</div>`;
+                    output.scrollTop = output.scrollHeight;
+                    return;
+                }
+            } catch(e) {}
+            const loading = document.createElement('div');
+            loading.className = "msg ai"; loading.innerText = "Düşünüyorum...";
+            output.appendChild(loading);
+            try {
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+                    method: "POST", headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: val }] }] })
+                });
+                const data = await res.json();
+                output.removeChild(loading);
+                output.innerHTML += `<div class="msg ai">${data.candidates[0].content.parts[0].text}</div>`;
+            } catch(err) { loading.innerText = "Hata!"; }
+            output.scrollTop = output.scrollHeight;
+        }
+        input.addEventListener("keypress", (e) => { if(e.key === "Enter") talk(); });
+    </script>
+</body>
+</html>
